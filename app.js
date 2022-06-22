@@ -3,7 +3,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const mongoose = require("mongoose");
-const encryption = require("mongoose-encryption");
+const md5 = require("md5");
 const { appendFileSync } = require("fs");
 
 const app = express();
@@ -25,14 +25,6 @@ const userSchema = new mongoose.Schema({
   password: String,
 });
 
-// getting secret key from the env file
-const secretKey = process.env.SECRETKEY;
-
-userSchema.plugin(encryption, {
-  secret: secretKey,
-  encryptedFields: ["password"],
-});
-
 // user model
 const User = new mongoose.model("User", userSchema);
 
@@ -49,7 +41,7 @@ app.get("/register", function (req, res) {
 app.post("/register", function (req, res) {
   const newUser = new User({
     email: req.body.username,
-    password: req.body.password,
+    password: md5(req.body.password),
   });
 
   //   save() method to add user to the database
@@ -64,7 +56,7 @@ app.post("/register", function (req, res) {
 
 app.post("/login", function (req, res) {
   const username = req.body.username;
-  const password = req.body.password;
+  const password = md5(req.body.password);
 
   User.findOne({ email: username }, function (err, foundUser) {
     if (err) {
