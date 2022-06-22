@@ -1,7 +1,9 @@
+require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const mongoose = require("mongoose");
+const encryption = require("mongoose-encryption");
 const { appendFileSync } = require("fs");
 
 const app = express();
@@ -21,6 +23,14 @@ const connection = mongoose.connect(
 const userSchema = new mongoose.Schema({
   email: String,
   password: String,
+});
+
+// getting secret key from the env file
+const secretKey = process.env.SECRETKEY;
+
+userSchema.plugin(encryption, {
+  secret: secretKey,
+  encryptedFields: ["password"],
 });
 
 // user model
@@ -63,6 +73,7 @@ app.post("/login", function (req, res) {
       if (foundUser) {
         if (password === foundUser.password) {
           res.render("secrets");
+          console.log(foundUser.password);
         } else {
           res.send("<h1>Incorrect password</h1>");
         }
